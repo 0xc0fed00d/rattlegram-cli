@@ -1,6 +1,8 @@
 
 CXXFLAGS = -std=c++17 -W -Wall -Ofast -fno-exceptions -fno-rtti
 CXX = clang++ -stdlib=libc++ -march=native
+CXX = clang++ -march=native
+# CXX = g++ 
 #CXX = g++ -march=native
 
 #CXX = armv7a-hardfloat-linux-gnueabi-g++ -static -mfpu=neon -march=armv7-a

@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 	int psk = 4;
 	if (argc > 3)
 		psk = std::atoi(argv[3]);
-	AudioFile<int16_t> audioFile;
+	AudioFile<float> audioFile;
 	audioFile.load(input_name);
 	int rate = audioFile.getSampleRate();
 	int channel_count = audioFile.getNumChannels();
@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
 	int extended_length = symbol_length + guard_length;
 	int record_count = rate/50;
 
-	int16_t file[file_length + 22 * record_count];
+	float file[file_length + 22 * record_count];
 	//for (int i = 0; i < file_length + record_count; i++) {
 	//	file[i] = 0;
 	//}

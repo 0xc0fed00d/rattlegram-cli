@@ -10,6 +10,7 @@ Copyright 2022 Ahmet Inan <inan@aicodix.de>
 #include <iostream>
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 
 namespace DSP { using std::abs; using std::min; using std::cos; using std::sin; }
 
@@ -55,7 +56,7 @@ int log2_int(int n) {
 }
 
 struct DecoderInterface {
-	virtual bool feed(const int16_t *, int, int) = 0;
+	virtual bool feed(const float *, int, int) = 0;
 
 	virtual int process() = 0;
 
@@ -240,11 +241,16 @@ class Decoder : public DecoderInterface {
 	}
 
 	const cmplx *corSeq() {
+    std::cout << "symbol " << symbol_length << " cor len " << cor_seq_len << "  cor off " << cor_seq_off << std::endl;
 		CODE::MLS seq(cor_seq_poly);
 		for (int i = 0; i < symbol_length / 2; ++i)
 			freq[i] = 0;
-		for (int i = 0; i < cor_seq_len; ++i)
-			freq[(i + cor_seq_off / 2 + symbol_length / 2) % (symbol_length / 2)] = nrz(seq());
+		for (int i = 0; i < cor_seq_len; ++i) {
+      auto index = (i + cor_seq_off / 2 + symbol_length / 2) % (symbol_length / 2);
+      bool s = seq();
+      std::cout << "i " << i << " index " << index << " seq " << s << std::endl;
+			freq[index] = nrz(s);
+    }
 		return freq;
 	}
 
@@ -252,18 +258,19 @@ class Decoder : public DecoderInterface {
 		return hilbert(block_dc(real));
 	}
 
-	cmplx convert(const int16_t *samples, int channel, int i) {
-		switch (channel) {
-			case 1:
-				return analytic(samples[2 * i] / 32768.f);
-			case 2:
-				return analytic(samples[2 * i + 1] / 32768.f);
-			case 3:
-				return analytic(((int) samples[2 * i] + (int) samples[2 * i + 1]) / 65536.f);
-			case 4:
-				return cmplx(samples[2 * i], samples[2 * i + 1]) / 32768.f;
-		}
-		return analytic(samples[i] / 32768.f);
+	cmplx convert(const float *samples, int channel, int i) {
+		/* switch (channel) { */
+		/* 	case 1: */
+		/* 		return analytic(samples[2 * i] / 32768.f); */
+		/* 	case 2: */
+		/* 		return analytic(samples[2 * i + 1] / 32768.f); */
+		/* 	case 3: */
+		/* 		return analytic(((int) samples[2 * i] + (int) samples[2 * i + 1]) / 65536.f); */
+		/* 	case 4: */
+		/* 		return cmplx(samples[2 * i], samples[2 * i + 1]) / 32768.f; */
+		/* } */
+		/* return analytic(samples[i] / 32768.f); */
+		return analytic(samples[i]);
 	}
 
 	void update_spectrum(uint32_t *pixels, uint32_t tint) {
@@ -405,14 +412,25 @@ public:
 		return result;
 	}
 
-	bool feed(const int16_t *audio_buffer, int sample_count, int channel_select) final {
+	bool feed(const float *audio_buffer, int sample_count, int channel_select) final {
+    static int RUN = 0;
+    std::cout << "sample count " << sample_count << "  run " << RUN++;
+    /* for(int i = 0; i < 4; i++) { */
+    /*   std::cout << audio_buffer[i] << ", "; */
+    /* } */
+    /* std::cout << std::endl; */
 		assert(sample_count <= extended_length);
 		for (int i = 0; i < sample_count; ++i) {
 			if (correlator(buffer(convert(audio_buffer, channel_select, i)))) {
 				stored_cfo_rad = correlator.cfo_rad;
 				stored_position = correlator.symbol_pos + accumulated;
 				stored_check = true;
+        std::cout << "cfo " << stored_cfo_rad << "   position " << stored_position << std::endl;
 			}
+      if (i == 0) {
+        auto b = buffer();
+        std::cout << "  {" << b[0].real() << ", " << b[0].imag() << "}, {" << b[1].real() << ", " << b[1].imag() << "}" << std::endl;
+      }
 			if (++accumulated == extended_length)
 				buf = buffer();
 		}
