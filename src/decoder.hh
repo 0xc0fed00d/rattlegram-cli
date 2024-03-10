@@ -241,14 +241,14 @@ class Decoder : public DecoderInterface {
 	}
 
 	const cmplx *corSeq() {
-    std::cout << "symbol " << symbol_length << " cor len " << cor_seq_len << "  cor off " << cor_seq_off << std::endl;
+    // std::cout << "symbol " << symbol_length << " cor len " << cor_seq_len << "  cor off " << cor_seq_off << std::endl;
 		CODE::MLS seq(cor_seq_poly);
 		for (int i = 0; i < symbol_length / 2; ++i)
 			freq[i] = 0;
 		for (int i = 0; i < cor_seq_len; ++i) {
       auto index = (i + cor_seq_off / 2 + symbol_length / 2) % (symbol_length / 2);
       bool s = seq();
-      std::cout << "i " << i << " index " << index << " seq " << s << std::endl;
+      // std::cout << "i " << i << " index " << index << " seq " << s << std::endl;
 			freq[index] = nrz(s);
     }
 		return freq;
@@ -414,7 +414,7 @@ public:
 
 	bool feed(const float *audio_buffer, int sample_count, int channel_select) final {
     static int RUN = 0;
-    std::cout << "sample count " << sample_count << "  run " << RUN++;
+    // std::cout << "sample count " << sample_count << "  run " << RUN++;
     /* for(int i = 0; i < 4; i++) { */
     /*   std::cout << audio_buffer[i] << ", "; */
     /* } */
@@ -425,11 +425,11 @@ public:
 				stored_cfo_rad = correlator.cfo_rad;
 				stored_position = correlator.symbol_pos + accumulated;
 				stored_check = true;
-        std::cout << "cfo " << stored_cfo_rad << "   position " << stored_position << std::endl;
+        // std::cout << "cfo " << stored_cfo_rad << "   position " << stored_position << std::endl;
 			}
       if (i == 0) {
         auto b = buffer();
-        std::cout << "  {" << b[0].real() << ", " << b[0].imag() << "}, {" << b[1].real() << ", " << b[1].imag() << "}" << std::endl;
+        // std::cout << "  {" << b[0].real() << ", " << b[0].imag() << "}, {" << b[1].real() << ", " << b[1].imag() << "}" << std::endl;
       }
 			if (++accumulated == extended_length)
 				buf = buffer();
